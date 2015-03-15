@@ -2,8 +2,8 @@
 Contributors: topdownjimmy
 Tags: custom fields, customfields, custom field, customfield, admin
 Requires at least: 3.5.1
-Tested up to: 3.5.1
-Stable tag: 0.1.1
+Tested up to: 4.1.1
+Stable tag: 0.1.2
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -16,8 +16,6 @@ This plugin offers a simple interface to edit or delete any Custom Field names/k
 Deleting a Custom Field *also* deletes the associated content, so use with caution!
 
 This is not meant to be a powerful plugin in the vein of [Advanced Custom Fields](http://www.advancedcustomfields.com/).
-
-I have only tested this in WordPress 3.5.1, but it may work with older/new releases.
 
 Only users with role Editor and above have access to this plugin.
 
@@ -33,6 +31,12 @@ Only users with role Editor and above have access to this plugin.
 1. Activate the plugin through the 'Plugins' menu in WordPress
 
 == Changelog ==
+
+= 0.1.2 =
+
+DUH: Allowed for db table prefixes other than `wp_` :self-flagellates:
+Embarrasing typo on "Confirm Custom Field Deleteion" screen :S
+Querying by ID now rather than key so that keys with spaces work smh
 
 = 0.1.1 =
 

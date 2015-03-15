@@ -3,7 +3,7 @@
 Plugin Name: Edit Custom Fields
 Plugin URI:
 Description: A simple interface to edit or delete Custom Fields.
-Version: 0.1.1
+Version: 0.1.2
 Author: Jay Sitter
 Author URI: http://www.jaysitter.com/
 License: GPL2
@@ -15,8 +15,12 @@ add_action('wp_head','include_ecf');
 function ecf_menu() {
     add_submenu_page('tools.php','Edit Custom Fields', 'Edit Custom Fields', 'delete_others_posts', 'ecf-options', 'ecf_options');
 }
- 
- 
+
+function get_meta_key_from_id($id) {
+	global $wpdb;
+	$meta_id_matches = $wpdb->get_results( "SELECT meta_key FROM " . $wpdb->prefix . "postmeta WHERE meta_id = '" . $id . "'" );
+	return $meta_id_matches[0]->meta_key;
+}
  
 function ecf_options() { // The options page
 ?>
@@ -25,8 +29,6 @@ function ecf_options() { // The options page
 
 				<?php global $wpdb; ?>
 
-				<?php // print_r($_POST); ?>
-
 				<?php if (isset($_POST['submit']) || isset($_POST['delete']) || isset($_POST['rename'])) { // If the user has submitted an action to us ?>
 
 
@@ -34,11 +36,9 @@ function ecf_options() { // The options page
 
 						<?php if ($_POST['delete'] == 'confirm') {
 
-							foreach ($_POST as $key => $value) {
+							foreach ($_POST['checkbox'] as $key => $value) {
 
-								if ($value == 'on') {
-									$wpdb->delete( 'wp_postmeta', array('meta_key' => $key) );
-								}
+								$wpdb->delete( $wpdb->prefix . 'postmeta', array('meta_id' => $value) );
 
 							}
 
@@ -46,7 +46,7 @@ function ecf_options() { // The options page
 
 						} else {
 
-							echo '<h2>Something went wrong</h2>';
+							echo '<h2>Something went wrong.</h2>';
 
 						} ?>
 
@@ -61,12 +61,13 @@ function ecf_options() { // The options page
 
 							foreach ($_POST as $key => $value) {
 								if (!($key == 'rename' || $key == 'submit' || $value == '' || $value == $key)) {
-									$existing = $wpdb->get_results( "SELECT * FROM wp_postmeta WHERE meta_key = '".$value."'" );
+									$existing = $wpdb->get_results( "SELECT * FROM " . $wpdb->prefix . "postmeta WHERE meta_key = '" . $value . "'" );
 									if (count($existing) > 0) {
-										echo '<p style="color:red">The Custom Field "'.$key.'" could not be renamed to "'.$value.'" because that Custom Field already exists.</p>';
+										echo '<p style="color:red">The Custom Field "' . $key . '" could not be renamed to "' . $value . '" because a Custom Field with that key already exists.</p>';
 									} else {
-										$wpdb->update('wp_postmeta',array('meta_key' => $value),array('meta_key' => $key));
-										echo '<p>The Custom Field "'.$key.'" was renamed to "'.$value.'".</p>';
+										$previous_meta_key[$key] = get_meta_key_from_id($key);
+										$wpdb->update($wpdb->prefix . 'postmeta',array('meta_key' => $value),array('meta_id' => $key));
+										echo '<p>The Custom Field "' . $previous_meta_key[$key] . '" was renamed to "' . $value . '" . </p>';
 										$success = TRUE;
 									}
 								}
@@ -79,10 +80,11 @@ function ecf_options() { // The options page
 
 								<?php foreach ($_POST as $key => $value) {
 									if (!($key == 'rename' || $key == 'submit' || $value == '')) {
-										$existing = $wpdb->get_results( "SELECT * FROM wp_postmeta WHERE meta_key = '".$key."'" );
+										$existing = $wpdb->get_results( "SELECT * FROM " . $wpdb->prefix . "postmeta WHERE meta_id = '" . $value . "'" );
 										if (count($existing) > 0) {
 										} else {
-											echo '<input type="hidden" name="'.$value.'" value="'.$key.'"/>';
+											echo '<input type="hidden" name="' . $key . '" value="' . $previous_meta_key[$key] . '"/>';
+											// echo '<input type="hidden" name="checkbox[]" value="' . $value . '"/>';
 										}
 									}
 								}
@@ -98,16 +100,14 @@ function ecf_options() { // The options page
 
 								<table>
 
-								<?php foreach ($_POST as $key => $value) {
+								<?php foreach ($_POST['checkbox'] as $key => $value) { ?>
 
-									if ($value == 'on') { ?>
 										<tr>
-										<td><label><?php echo $key; ?></label></td>
-										<td><input name="<?php echo $key; ?>" value="<?php echo $key; ?>"/></td>
+										<td><label><?php echo get_meta_key_from_id($value); ?></label></td>
+										<td><input name="<?php echo $value; ?>" value="<?php echo get_meta_key_from_id($value); ?>"/></td>
 										</tr>
-									<?php }
 
-								} ?>
+								<?php } ?>
 
 								</table>
 
@@ -119,16 +119,16 @@ function ecf_options() { // The options page
 						<?php } ?>
 
 					<?php } else { ?>
-						
-						<h2>Confirm Custom Field Deleteion</h2>
+
+						<h2>Confirm Custom Field Deletion</h2>
 
 						<p>The following custom fields will be <em><strong>IRREVOCABLY DELETED:</strong></em></p>
 
 						<ul>
 
-						<?php foreach ($_POST as $key => $value) {
+						<?php foreach ($_POST['checkbox'] as $key => $value) {
 
-							if ($value == 'on') echo '<li>',$key,'</li>';
+								echo '<li>'; print_r(get_meta_key_from_id($value)); echo '</li>';
 
 						} ?>
 
@@ -155,20 +155,17 @@ function ecf_options() { // The options page
 						</tr>
 
 
-						<?php foreach ($_POST as $key => $value) {
+						<?php foreach ($_POST['checkbox'] as $key => $value) {
 
-							if ($value == 'on') {
-								echo '<input type="hidden" name="'.$key.'" value="'.$value.'" />';
-								echo '<tr><td colspan="2"><h3>',$key,'</h3></td></tr>';
-								$rows = $wpdb->get_results( "SELECT * FROM wp_postmeta WHERE meta_key = '".$key."'" );
-								foreach ($rows as $row) {
-									echo '<tr>';
-										echo '<td><a target="_blank" href="'.get_permalink($row->post_id).'">',get_the_title($row->post_id),'</a></td>';
-										echo '<td>',$row->meta_value,'</td>';
-									echo '</tr>';
-								}
+							echo '<input type="hidden" name="checkbox[]" value="' . $value . '" />';
+							echo '<tr><td colspan="2"><h3>',get_meta_key_from_id($value),'</h3></td></tr>';
+							$rows = $wpdb->get_results( "SELECT * FROM " . $wpdb->prefix . "postmeta WHERE meta_id = '" . $value . "'" );
+							foreach ($rows as $row) {
+								echo '<tr>';
+									echo '<td><a target="_blank" href="' . get_permalink($row->post_id) . '">',get_the_title($row->post_id),'</a></td>';
+									echo '<td>',$row->meta_value,'</td>';
+								echo '</tr>';
 							}
-
 
 						} ?>
 
@@ -191,7 +188,7 @@ function ecf_options() { // The options page
 					<?php
 
 
-					$myrows = $wpdb->get_results( "SELECT distinct(`meta_key`) FROM wp_postmeta HAVING meta_key NOT LIKE '\_%'" );
+						$myrows = $wpdb->get_results( "SELECT distinct(`meta_id`),meta_key FROM " . $wpdb->prefix . "postmeta HAVING meta_key NOT LIKE '\_%'" );
 
 					?>
 
@@ -203,17 +200,17 @@ function ecf_options() { // The options page
 							echo '<ul>';
 
 							foreach ($myrows as $myrow) {
-								$cf_instances = $wpdb->get_results( "SELECT * FROM wp_postmeta WHERE meta_key = '".$myrow->meta_key."'" );
+								$cf_instances = $wpdb->get_results( "SELECT * FROM " . $wpdb->prefix . "postmeta WHERE meta_key = '" . $myrow->meta_key . "'" );
 								echo '<li>';
-								echo '<input type="checkbox" id="'.$myrow->meta_key.'" name="'.$myrow->meta_key.'">';
-								echo ' <label for="'.$myrow->meta_key.'">',$myrow->meta_key,' (Used by '.count($cf_instances).' posts)</label></li>';
+								echo '<input type="checkbox" id="cf_' . $myrow->meta_id . '" name="checkbox[]" value="' . $myrow->meta_id . '">';
+								echo ' <label for="cf_' . $myrow->meta_id . '">',$myrow->meta_key,' (Used by ' . count($cf_instances) . ' posts)</label></li>';
 							}
 
 							echo '</ul>';
 
 							?>
-							<?php submit_button('Delete Checked Custom Fields','delete'); ?>
-							<?php submit_button('Rename Checked Custom Fields','update','rename'); ?>
+							<?php submit_button('Delete Checked Custom Fields', 'delete'); ?>
+							<?php submit_button('Rename Checked Custom Fields', 'update', 'rename'); ?>
 					</form>
 					</div>
 
