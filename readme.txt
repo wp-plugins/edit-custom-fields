@@ -11,8 +11,6 @@ A simple interface to edit or delete Custom Fields.
 
 == Description ==
 
-**Note:** This plugin does *not* work as expected past version 0.1.1. Work is being done to remedy this.
-
 This plugin offers a simple interface to edit or delete any Custom Field names/keys you may have created in the post/page editor.
 
 Deleting a Custom Field *also* deletes the associated content, so use with caution!
