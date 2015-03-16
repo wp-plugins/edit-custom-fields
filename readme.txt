@@ -3,15 +3,13 @@ Contributors: topdownjimmy
 Tags: custom fields, customfields, custom field, customfield, admin
 Requires at least: 3.5.1
 Tested up to: 4.1.1
-Stable tag: 0.1.3
+Stable tag: 0.1.4
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
 A simple interface to edit or delete Custom Fields.
 
 == Description ==
-
-**Note:** This plugin does *not* work as expected past version 0.1.1. Work is being done to remedy this.
 
 This plugin offers a simple interface to edit or delete any Custom Field names/keys you may have created in the post/page editor.
 
