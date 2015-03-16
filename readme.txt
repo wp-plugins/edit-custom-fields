@@ -34,6 +34,11 @@ Only users with role Editor and above have access to this plugin.
 
 == Changelog ==
 
+= 0.1.4 =
+
+- Fixed regression from 0.1.2 onward that broke plugin when custom field key was
+	used in multiple posts.
+
 = 0.1.3 =
 
 - Removed broken function that broke 0.1.2
