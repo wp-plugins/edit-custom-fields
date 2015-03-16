@@ -3,17 +3,17 @@
 Plugin Name: Edit Custom Fields
 Plugin URI:
 Description: A simple interface to edit or delete Custom Fields.
-Version: 0.1.2
+Version: 0.1.3
 Author: Jay Sitter
 Author URI: http://www.jaysitter.com/
 License: GPL2
 */
  
 add_action( 'admin_menu', 'ecf_menu' );
-add_action('wp_head','include_ecf');
+// add_action('wp_head','include_ecf');
  
 function ecf_menu() {
-    add_submenu_page('tools.php','Edit Custom Fields', 'Edit Custom Fields', 'delete_others_posts', 'ecf-options', 'ecf_options');
+	add_submenu_page('tools.php','Edit Custom Fields', 'Edit Custom Fields', 'delete_others_posts', 'ecf-options', 'ecf_options');
 }
 
 function get_meta_key_from_id($id) {
